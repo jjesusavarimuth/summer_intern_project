@@ -25,8 +25,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/agent-base"
-Repository = "https://github.com/your-username/agent-base"
+Homepage = "https://github.com/lchen4-godaddy/agent-template-openai-agents-sdk"
+Repository = "https://github.com/lchen4-godaddy/agent-template-openai-agents-sdk"
 
 [tool.uv.sources]
 openai-agents = { git = "https://github.com/openai/openai-agents-python.git" } 

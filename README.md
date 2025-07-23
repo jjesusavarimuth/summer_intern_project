@@ -22,8 +22,8 @@ A web search assistant that uses AI agents to perform intelligent web searches a
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/agent-base.git
-   cd agent-base
+   git clone https://github.com/lchen4-godaddy/agent-template-openai-agents-sdk.git
+   cd agent-template-openai-agents-sdk
    ```
 
 2. **Set up virtual environment and install dependencies**
