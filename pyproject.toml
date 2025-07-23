@@ -1,0 +1,32 @@
+[project]
+name = "template-agent"
+version = "0.1.0"
+description = "A web search assistant that uses AI agents to perform intelligent web searches and provide helpful responses"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+license = "MIT"
+authors = [{ name = "Your Name" }]
+dependencies = [
+    "openai>=1.87.0",
+    "openai-agents",
+    "python-dotenv>=1.0.0",
+]
+classifiers = [
+    "Typing :: Typed",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/agent-base"
+Repository = "https://github.com/your-username/agent-base"
+
+[tool.uv.sources]
+openai-agents = { git = "https://github.com/openai/openai-agents-python.git" } 
