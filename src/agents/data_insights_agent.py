@@ -51,5 +51,6 @@ data_insights_agent = Agent(
     name="DataInsightsAgent",
     instructions=INSTRUCTIONS,
     model="gpt-4o-mini",
+    handoffs=[data_visualizer_agent],
     tools=[plan_and_retrieve]
 )
