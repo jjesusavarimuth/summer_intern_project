@@ -11,5 +11,5 @@ if [ -f .env ]; then
     set +a  # turn off automatic export
 fi
 
-# Run the research bot
+# Run the data insights agent
 python -m src.main 
