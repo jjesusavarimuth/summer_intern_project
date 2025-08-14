@@ -1,6 +1,7 @@
-from agents import Agent, Runner, function_tool
+from agents import Agent, Runner
 import boto3
 import logging
+from typing import Optional, Dict
 
 client = boto3.client('bedrock-agent-runtime')
 
@@ -23,48 +24,12 @@ INSTRUCTIONS = """
     4. DO NOT try to generate SQL query in your response.
 """
 
-@function_tool
-async def plan_and_retrieve(user_input: str) -> str:
-    """Gets the results of a query from the knowledge base and structures the output"""
-    query_planner_agent = Agent(
-        name="QueryPlannerAgent",
-        instructions= INSTRUCTIONS,
-        model="gpt-4o-mini",
-    )
+query_planner_agent = Agent(
+    name="QueryPlannerAgent",
+    instructions= INSTRUCTIONS,
+    model="gpt-4o-mini",
+)
 
-    try:
-        
-        query_plan_result = await Runner.run(query_planner_agent, f"Create a query plan for this question: {user_input}")
-        query_plan = query_plan_result.final_output
-        print(f"\n🔍 Query plan: {query_plan} \n")
-        # Combine question and query plan into a single input for the knowledge base
-        combined_input = f""" Question: {user_input} Query Plan: {query_plan}"""
-        
-        # Get raw results from knowledge base
-        event = {
-            'requestBody': {
-                'content': {
-                    'application/json': {
-                        'properties': [{'name': 'question', 'value': combined_input}]
-                    }
-                }
-            }
-        }
-        
-        
-        kb_results = query_KB(event)
-        print(f"\n✅ Got KB results: {kb_results} \n")
-        
-        # Check if there's an error in the KB results  
-        if isinstance(kb_results, dict) and 'error' in kb_results:
-            return f"Sorry, I couldn't retrieve data from the knowledge base: {kb_results['error']}"
-        
-        return kb_results
-        
-    except Exception as e:
-        error_msg = f"Sorry, I encountered an error while retrieving data: {str(e)}. This might be due to AWS credential issues."
-        print(f"\n❌ Error in retrieve_query_results: {error_msg} \n")
-        return error_msg
 
 
 logger = logging.getLogger()

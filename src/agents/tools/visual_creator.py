@@ -1,10 +1,10 @@
-from agents import Agent, ModelSettings, function_tool, Runner
+from agents import Agent
 import json
 import re
 from typing import Dict, Any
-from src.services.quicksight_service import quicksight_visual
 
-VISUAL_JSON_DEFINITION = None
+DATASET_IDENTIFIER = "4485d828-ce32-44bf-b38e-75fa8fcd571c"
+DATASET_ARN = "arn:aws:quicksight:us-west-2:817491136527:dataset/4485d828-ce32-44bf-b38e-75fa8fcd571c"
 
 INSTRUCTIONS = """
 You are a dashboard definition generator expert for Amazon QuickSight. Your role is to analyze, follow and use the values and guidelines from the visualisation_plan and generate a complete QuickSight dashboard definition in JSON format.
@@ -29,6 +29,7 @@ GUIDELINES FOR GENERATING THE JSON DEFINITION FROM THE VISUALISATION PLAN:
     - then the NumericalMeasureField should have the AggregationFunction key with the value of the AGGREGATION_FUNCTIONS key in the visualisation_plan.
   - If the aggregation_function_required is False in the visualisation_plan, 
     - then the NumericalMeasureField should not have the AggregationFunction key.
+  - NEVER CHANGE the values of "DataSetIdentifier" in "Category" or "Values" in the json definition template.
   - The SORT_TYPE in the json definition should be the value of the SORT_TYPE key in the visualisation_plan.
   - The SORT_DIRECTION in the json definition should be the value of the SORT_DIRECTION key in the visualisation_plan.
   - If the calculated_fields_required is True in the visualisation_plan, 
@@ -71,7 +72,7 @@ JSON DEFINITION TEMPLATE:
                         "CategoricalDimensionField": {
                           "FieldId": "<DIMENSION_FIELD_ID>",
                           "Column": {
-                            "DataSetIdentifier": "YOUR_DATASET_IDENTIFIER",
+                            "DataSetIdentifier": "Do_not_change_this_value",
                             "ColumnName": "<DIMENSION_COLUMN_NAME>"
                           }
                         }
@@ -82,7 +83,7 @@ JSON DEFINITION TEMPLATE:
                         "NumericalMeasureField": {
                           "FieldId": "<MEASURE_FIELD_ID>",
                           "Column": {
-                            "DataSetIdentifier": "YOUR_DATASET_IDENTIFIER",
+                            "DataSetIdentifier": "Do_not_change_this_value",
                             "ColumnName": "<MEASURE_COLUMN_NAME>"
                           },
                           "AggregationFunction": {
@@ -131,31 +132,13 @@ IMPORTANT REQUIREMENTS:
 DATASET_IDENTIFIER = "4485d828-ce32-44bf-b38e-75fa8fcd571c"
 DATASET_ARN = "arn:aws:quicksight:us-west-2:817491136527:dataset/4485d828-ce32-44bf-b38e-75fa8fcd571c"
 
-@function_tool
-async def prepare_visual_definition(visualisation_plan: str) -> str:
-  """
-  Prepare the json definition from the visualisation plan.
-  """
-  data_visualizer_agent = Agent(
-    name="DashboardDefinitionGeneratorAgent",
-    instructions=INSTRUCTIONS,
-    model="gpt-4o-mini"
-  )
-  try :
-    json_definition = await Runner.run(data_visualizer_agent, f"Prepare the json definition from the visualisation plan: {visualisation_plan}")
-    print(f"\n✅ Got JSON definition: {json_definition.final_output} \n")
-    valid_json_definition = get_definition_json(json_definition.final_output)
-    print(f"\n✅ Valid JSON definition: {valid_json_definition} \n")
-    complete_json_definition = add_dataset_identifier(valid_json_definition)
-    print(f"\n✅ Complete JSON definition: {complete_json_definition} \n")
-    VISUAL_JSON_DEFINITION = complete_json_definition
-    # return complete_json_definition
 
-  except Exception as e:
-    error_msg = f"Sorry, I encountered an error while preparing the json definition: {str(e)}. This might be due to the visualisation plan or the json definition template."
-    print(f"\n❌ Error preparing json definition: {error_msg} \n")
-    print (f"\n❌ Visualisation plan: {visualisation_plan} \n")
-    return error_msg
+visual_definition_generator = Agent(
+  name="DashboardDefinitionGeneratorAgent",
+  instructions=INSTRUCTIONS,
+  model="gpt-4o-mini"
+)
+  
 
 def get_definition_json(visual_json_definition: str) -> Dict[str, Any]:
     """
@@ -167,14 +150,13 @@ def get_definition_json(visual_json_definition: str) -> Dict[str, Any]:
     Returns:
         Dictionary representation of the extracted JSON definition
     """
-    print(f"Markdown content: {visual_json_definition}")
     
     # Check if content starts with ```json (markdown format)
     if visual_json_definition.strip().startswith("```json"):
         # Pattern to match JSON content between ```json and ``` markers
         json_pattern = r"```json\s*([\s\S]*?)\s*```"
         json_matches = re.findall(json_pattern, visual_json_definition)
-        print(f"JSON matches from markdown: {json_matches}")
+        print(f"JSON matches from markdown")
         
         if not json_matches:
             raise ValueError("No JSON content found in the markdown blocks")
@@ -184,8 +166,6 @@ def get_definition_json(visual_json_definition: str) -> Dict[str, Any]:
         # Content is already plain JSON (not in markdown blocks)
         json_string = visual_json_definition.strip()
         print("Content appears to be plain JSON, not markdown")
-    
-    print(f"JSON string to parse: {json_string[:200]}...")  # Show first 200 chars
     
     try:
         # Parse the JSON string into a Python dictionary
@@ -213,7 +193,7 @@ def add_dataset_identifier(json_definition: Dict[str, Any]) -> Dict[str, Any]:
     # Convert to JSON string to replace all DataSetIdentifier placeholders throughout the definition
     json_string = json.dumps(json_definition)
     
-    json_string = json_string.replace("YOUR_DATASET_IDENTIFIER", DATASET_IDENTIFIER)
+    json_string = json_string.replace("Do_not_change_this_value", DATASET_IDENTIFIER)
     
     # Convert back to dictionary
     json_definition = json.loads(json_string)
