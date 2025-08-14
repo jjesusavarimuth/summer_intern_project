@@ -2,7 +2,7 @@ import asyncio
 
 from agents import Runner, SQLiteSession
 
-from .agents.data_insights_agent import data_insights_agent
+from .agents.coordinator_agent import coordinator_agent
 
 class Manager:
 
@@ -10,9 +10,9 @@ class Manager:
         # Intialize session to store conversation history
         session = SQLiteSession("session1")
 
-        print("Hi I'm a data insights assistant for a digital fashion e-commerce store. How can I help you today?")
+        print("Hi I'm a data analysis and visualization assistant for a digital fashion e-commerce store. I can help you with data insights, visualizations, and QuickSight management. How can I help you today?")
         # Add initial message to the session
-        await session.add_items([{"role": "assistant", "content": "Hi I'm a data insights assistant for a digital fashion e-commerce store. How can I help you today?"}])
+        await session.add_items([{"role": "assistant", "content": "Hi I'm a data analysis and visualization assistant for a digital fashion e-commerce store. I can help you with data insights, visualizations, and QuickSight management. How can I help you today?"}])
 
         while True:
             try:
@@ -27,7 +27,7 @@ class Manager:
                 
                 # By passing the session each run, the agent has knowledge of the conversation history
                 
-                chatbot_response = await Runner.run(data_insights_agent, user_input, session=session)
+                chatbot_response = await Runner.run(coordinator_agent, user_input, session=session)
                 
                 print("\n" + chatbot_response.final_output + "\n")
                 
