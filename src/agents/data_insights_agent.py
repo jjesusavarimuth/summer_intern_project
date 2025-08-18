@@ -1,3 +1,10 @@
+"""
+Data Insights Agent - Handles data analysis queries and retrieval.
+
+This agent processes user questions about e-commerce data, creates query plans,
+retrieves results from the knowledge base, and formats responses with insights.
+"""
+
 from agents import Agent, Runner, function_tool
 from .tools.insights_planner import query_planner_agent, query_KB
 from typing import Optional, Dict
@@ -5,19 +12,23 @@ from ..memory.agent_memory import AGENT_MEMORY
 
 @function_tool
 async def plan_and_retrieve(user_input: str) -> str:
-    """Gets the results of a query from the knowledge base and structures the output"""
+    """
+    Main tool for processing data queries.
+    Creates query plan, retrieves KB results, and stores context in memory.
+    """
 
     agent_response: Optional [Dict[str, str]] = None
     try:
         
+        # Step 1: Create structured query plan
         query_plan_result = await Runner.run(query_planner_agent, f"Create a query plan for this question: {user_input}")
         query_plan = query_plan_result.final_output
         print(f"\n🔍 Query plan: {query_plan} \n")
-        # Combine question and query plan into a single input for the knowledge base
+        
+        # Step 2: Combine question and plan for KB query
         combined_input = f""" Question: {user_input} Query Plan: {query_plan}"""
         
-        
-        # Get raw results from knowledge base
+        # Step 3: Format request for knowledge base API
         event = {
             'requestBody': {
                 'content': {
@@ -28,10 +39,11 @@ async def plan_and_retrieve(user_input: str) -> str:
             }
         }
         
-        
+        # Step 4: Query knowledge base for results
         kb_results = query_KB(event)
         print(f"\n✅ Got KB results: {kb_results} \n")
         
+        # Step 5: Store context and return results
         if kb_results['sql'] and kb_results['answer']:
             agent_response = {"query_plan": query_plan, "sql": kb_results['sql'], "insights": kb_results['answer']}
             AGENT_MEMORY.add_data_insights_context_pair(user_input, agent_response)
@@ -83,6 +95,7 @@ INSTRUCTIONS = """
 """
 
 
+# Data insights agent - processes queries and retrieves business intelligence
 data_insights_agent = Agent(
     name="DataInsightsAgent",
     instructions=INSTRUCTIONS,

@@ -1,6 +1,13 @@
+"""
+Visual Planner Agent - Creates structured visualization plans for QuickSight.
+
+This agent analyzes data context and user requirements to generate detailed
+visual plans with appropriate chart types, field mappings, and configurations.
+"""
+
 from agents import Agent
 
-
+# Comprehensive instructions for visual planning with all QuickSight options
 INSTRUCTIONS = """
 You are a Visual Planning Expert for QuickSight dashboards. Your role is to analyze the given context which includes a SQL query breakdown, and for more context, user questions, query plan, SQL query and data query results to plan the most appropriate visualizations and generate QuickSight dashboard definitions.
 
@@ -220,6 +227,7 @@ SUMMARY: Based on the user's question about profit margin by category, a calcula
 Always provide specific, actionable planning that directly addresses the user's question and makes the best use of the available data.
 """
 
+# Visual planner agent - creates structured visualization plans
 visual_planner_agent = Agent(
     name="Data Visualizer Agent",
     model="gpt-4o-mini",

@@ -1,3 +1,10 @@
+"""
+QuickSight Service - AWS QuickSight integration for dashboard and analysis management.
+
+This service provides functions to create, update, and manage QuickSight analyses
+and dashboards through the AWS SDK. Handles permissions and error management.
+"""
+
 import boto3
 from typing import Dict, Any
 from botocore.exceptions import ClientError
@@ -68,7 +75,15 @@ test_dashboard_definition = {
 
 def create_analysis(visual_definition: Dict[str, Any], name: str,analysis_id: str) -> Dict[str, Any]:
     """
-    Visualize the dashboard definition in Quicksight
+    Create a QuickSight analysis from a visual definition.
+    
+    Args:
+        visual_definition: JSON definition containing the visualization structure
+        name: Display name for the analysis
+        analysis_id: Unique identifier for the analysis
+    
+    Returns:
+        Dict containing status and response from AWS
     """
 
     print(f"\n✅ Creating analysis: {analysis_id}\n")

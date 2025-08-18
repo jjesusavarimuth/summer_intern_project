@@ -1,3 +1,10 @@
+"""
+Agent Memory - Shared memory system for multi-agent conversations.
+
+This module provides a centralized memory store that allows agents to share
+context, query results, and visualization definitions across interactions.
+"""
+
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 import json
@@ -5,8 +12,10 @@ import json
 @dataclass
 class AgentMemory:
     """
-    Memory class to store context between agent interactions.
-    Maintains NL query plan, SQL query, and JSON visual definition.
+    Centralized memory store for agent interactions and workflow state.
+    
+    Maintains conversation context, data insights, visualization plans,
+    and QuickSight configuration across multiple agent interactions.
     """
     
     # session context - list of user/agent interactions
