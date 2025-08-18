@@ -236,14 +236,53 @@ uv sync --reinstall
 
 ## 🧪 Testing
 
-```bash
-# Test QuickSight connectivity
-python test_quicksight.py
+### QuickSight API Testing
 
+Run the comprehensive QuickSight test suite to validate all API functions:
+
+```bash
+# Run complete QuickSight API test suite
+python test_quicksight.py
+```
+
+**Test Coverage:**
+- ✅ Analysis creation with test dashboard definition
+- ✅ Analysis listing and validation
+- ✅ Analysis permissions update
+- ✅ Dashboard creation and configuration
+- ✅ Dashboard permissions update
+- ✅ Automatic cleanup of test resources
+
+**Expected Output:**
+```
+🚀 Starting QuickSight API Test Suite
+==================================================
+🧪 Testing Analysis Creation...
+✅ PASS Analysis Creation
+🧪 Testing Analysis Listing...
+✅ PASS Analysis Listing
+🧪 Testing Analysis Permissions Update...
+✅ PASS Analysis Permissions Update
+🧪 Testing Dashboard Creation...
+✅ PASS Dashboard Creation
+🧪 Testing Dashboard Permissions...
+✅ PASS Dashboard Permissions
+🧹 Cleaning up test resources...
+📊 TEST RESULTS SUMMARY
+==================================================
+Total Tests: 5
+Passed: 5
+Success Rate: 100.0%
+🎉 Test suite completed!
+```
+
+### Other Tests
+
+```bash
 # Test OpenAI integration
 python test_openai.py
 
-# Run specific agent tests
+# Test agent loading
 python -c "from src.agents.coordinator_agent import coordinator_agent; print('✅ Agents loaded')"
 ```
 

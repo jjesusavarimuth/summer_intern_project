@@ -23,7 +23,8 @@ from src.services.quicksight_service import (
     get_available_analyses, 
     create_dashboard, 
     update_dashboard_permissions,
-    update_analysis_permissions
+    update_analysis_permissions,
+    delete_dashboard
 )
 
 # Test dashboard definition for QuickSight analysis creation
@@ -233,8 +234,13 @@ class QuickSightTester:
         # Note: Dashboard cleanup would require additional API calls
         # QuickSight doesn't have a simple delete_dashboard function in the current service
         if self.test_resources['dashboards']:
-            print("   ⚠️  Dashboard cleanup requires manual deletion via AWS Console")
-            print(f"   📋 Dashboards to clean up: {', '.join(self.test_resources['dashboards'])}")
+            try:
+                for dashboard_id in self.test_resources['dashboards']:
+                    print(f"   🗑️  Deleting dashboard: {dashboard_id}")
+                    result = delete_dashboard(dashboard_id)
+                    self.log_test(f"Cleanup Dashboard ({dashboard_id})", True)
+            except Exception as e:
+                self.log_test(f"Cleanup Dashboard ({dashboard_id})", False, f"Exception: {str(e)}")
     
     def run_all_tests(self):
         """Execute all QuickSight API tests"""

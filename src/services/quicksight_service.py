@@ -123,6 +123,17 @@ def update_dashboard_permissions(dashboard_id: str) -> Dict[str, Any]:
     )
     return response
 
+def delete_dashboard(dashboard_id: str) -> Dict[str, Any]:
+    """
+    Delete a dashboard
+    """
+    client = boto3.client('quicksight')
+    response = client.delete_dashboard(
+        AwsAccountId = '817491136527',
+        DashboardId = dashboard_id
+    )
+    return response
+
 def delete_analysis(analysis_id: str) -> Dict[str, Any]:
     """
     Delete an analysis
