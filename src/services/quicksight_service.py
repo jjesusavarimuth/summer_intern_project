@@ -10,66 +10,7 @@ from typing import Dict, Any
 from botocore.exceptions import ClientError
 import json
 
-# For testing purposes - simplified valid QuickSight dashboard
-test_dashboard_definition = {
-    "Definition": {
-        "Sheets": [
-            {
-                "SheetId": "sheet1",
-                "Name": "Test Dashboard Sheet",
-                "Visuals": [
-                    {
-                        "BarChartVisual": {
-                            "VisualId": "visual1",
-                            "Title": {
-                                "FormatText": {
-                                    "PlainText": "Test Bar Chart"
-                                }
-                            },
-                            "ChartConfiguration": {
-                                "FieldWells": {
-                                    "BarChartAggregatedFieldWells": {
-                                        "Category": [
-                                            {
-                                                "CategoricalDimensionField": {
-                                                    "FieldId": "product_category",
-                                                    "Column": {
-                                                        "DataSetIdentifier": "4485d828-ce32-44bf-b38e-75fa8fcd571c",
-                                                        "ColumnName": "category"
-                                                    }
-                                                }
-                                            }
-                                        ],
-                                        "Values": [
-                                            {
-                                                "NumericalMeasureField": {
-                                                    "FieldId": "total_revenue_generated",
-                                                    "Column": {
-                                                        "DataSetIdentifier": "4485d828-ce32-44bf-b38e-75fa8fcd571c",
-                                                        "ColumnName": "item_total"
-                                                    },
-                                                    "AggregationFunction": {
-                                                        "SimpleNumericalAggregation": "SUM"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ]
-            }
-        ],
-        "DataSetIdentifierDeclarations": [
-            {
-                "DataSetArn": "arn:aws:quicksight:us-west-2:817491136527:dataset/4485d828-ce32-44bf-b38e-75fa8fcd571c",
-                "Identifier": "4485d828-ce32-44bf-b38e-75fa8fcd571c"
-            }
-        ]
-    }
-}
+
 
 
 
@@ -101,18 +42,22 @@ def create_analysis(visual_definition: Dict[str, Any], name: str,analysis_id: st
         print(f"\n❌ Error creating analysis: {e}\n")
         return {"status": "error", "response": str(e)}
     
-def create_dashboard() -> Dict[str, Any]:
+def create_dashboard(dashboard_definition: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Create a dashboard in Quicksight
+    Create a simple test dashboard in QuickSight
     """
-    client = boto3.client('quicksight')
-    response = client.create_dashboard(
-        AwsAccountId = '817491136527',
-        Name = "test-dashboard-1",
-        DashboardId = "test-dashboard-1",
-        Definition = test_dashboard_definition["Definition"]
-    )
-    return response
+    try:
+        client = boto3.client('quicksight')
+        
+        response = client.create_dashboard(
+            AwsAccountId = '817491136527',
+            Name = "test-dashboard-1",
+            DashboardId = "test-dashboard-1",
+            Definition = dashboard_definition
+        )
+        return {"status": "success", "response": response}
+    except Exception as e:
+        return {"status": "error", "response": str(e)}
 
 def get_available_analyses() -> Dict[str, Any]:
     """
@@ -151,7 +96,7 @@ def update_analysis_permissions(analysis_id: str) -> Dict[str, Any]:
     )
     return response
 
-def update_dashboard_permissions() -> Dict[str, Any]:
+def update_dashboard_permissions(dashboard_id: str) -> Dict[str, Any]:
     """
     Update the permissions of a dashboard for the user to be able to view the dashboard.
     """
@@ -166,15 +111,14 @@ def update_dashboard_permissions() -> Dict[str, Any]:
                 "quicksight:DescribeDashboard",
                 "quicksight:UpdateDashboard",
                 "quicksight:ListDashboardVersions",
-                "quicksight:UpdateDashboardPublishedVersion",
-                "quicksight:GenerateEmbedUrlForRegisteredUser"
+                "quicksight:UpdateDashboardPublishedVersion"
             ]
         }
     ]
     client = boto3.client('quicksight')
     response = client.update_dashboard_permissions(
         AwsAccountId = '817491136527',
-        DashboardId = "test-dashboard-1",
+        DashboardId = dashboard_id,
         GrantPermissions = grant_permissions
     )
     return response
