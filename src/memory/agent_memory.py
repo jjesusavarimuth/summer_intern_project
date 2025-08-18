@@ -10,7 +10,9 @@ class AgentMemory:
     """
     
     # session context - list of user/agent interactions
+    data_insights_context: Optional[List[Dict[str, Any]]] = None
     context: Optional[List[Dict[str, Any]]] = None
+    has_sql_query: Optional[bool] = False
     
     # Data Visualizer Agent outputs  
     visualization_plan: Optional[str] = None
@@ -30,31 +32,11 @@ class AgentMemory:
 
 
     
-    def add_context_pair(self, user_message: str, agent_response: str):
+    def add_data_insights_context_pair(self, user_message: str, agent_response: str):
         """Add a complete user/agent interaction pair"""
-        if self.context is None:
-            self.context = []
-        
-        self.context.append({"user": user_message, "agent": agent_response})
-    
-    def get_context(self) -> List[Dict[str, str]]:
-        """Get the session context as list of user/agent pairs"""
-        return self.context or []
-    
-    def get_context_as_string(self) -> str:
-        """Get the context formatted as a readable string"""
-        if not self.context:
-            return ""
-        
-        formatted_context = []
-        for interaction in self.context:
-            if interaction["user"]:
-                formatted_context.append(f"\nUser: {interaction['user']}\n")
-            if interaction["agent"]:
-                formatted_context.append(f"\nAgent: {interaction['agent']}\n")
-        
-        return "\n".join(formatted_context)
-    
+        if self.data_insights_context is None:
+            self.data_insights_context = []
+        self.data_insights_context.append({"user": user_message, "agent": agent_response})
 
     def set_visualization_plan(self, visualization_plan: str):
         """Set visualization plan"""
@@ -91,6 +73,24 @@ class AgentMemory:
     def set_update_analysis(self, update_analysis: bool):
         """Set update_analysis"""
         self.update_analysis = update_analysis
+
+    def get_data_insights_context(self) -> List[Dict[str, str]]:
+        """Get the session context as list of user/agent pairs"""
+        return self.data_insights_context or []
+    
+    def get_data_insights_context_as_string(self) -> str:
+        """Get the context formatted as a readable string"""
+        if not self.data_insights_context:
+            return ""
+        
+        formatted_context = []
+        for interaction in self.data_insights_context:
+            if interaction["user"]:
+                formatted_context.append(f"\nUser: {interaction['user']}\n")
+            if interaction["agent"]:
+                formatted_context.append(f"\nAgent: {interaction['agent']}\n")
+        
+        return "\n".join(formatted_context)
 
     def get_quicksight_analysis_name(self) -> str:
         """Get quicksight_analysis_name"""
@@ -146,7 +146,7 @@ class AgentMemory:
     
     def __str__(self) -> str:
         """String representation of memory contents"""
-        context_summary = f"{len(self.context)} interactions" if self.context else "No context"
+        context_summary = f"{len(self.data_insights_context)} interactions" if self.data_insights_context else "No context"
         return f"""AgentMemory:
 - Context: {context_summary}
 - Has Visualization Plan: {self.get_has_visualization_plan()}

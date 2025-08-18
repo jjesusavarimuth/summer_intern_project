@@ -32,9 +32,10 @@ async def plan_and_retrieve(user_input: str) -> str:
         kb_results = query_KB(event)
         print(f"\n✅ Got KB results: {kb_results} \n")
         
-        agent_response = {"query_plan": query_plan, "sql": kb_results['sql'], "insights": kb_results['answer']}
-        AGENT_MEMORY.add_context_pair(user_input, agent_response)
-        return kb_results
+        if kb_results['sql'] and kb_results['answer']:
+            agent_response = {"query_plan": query_plan, "sql": kb_results['sql'], "insights": kb_results['answer']}
+            AGENT_MEMORY.add_data_insights_context_pair(user_input, agent_response)
+            return kb_results
         
     except Exception as e:
         error_msg = f"Sorry, I encountered an error while retrieving data: {str(e)}."

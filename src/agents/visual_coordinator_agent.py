@@ -4,7 +4,7 @@ from .tools.visual_creator import visual_definition_generator, get_definition_js
 from .tools.quicksight_agent import quicksight_agent
 from ..memory.agent_memory import AGENT_MEMORY
 from ..services.quicksight_service import create_analysis, get_available_analyses, update_analysis_permissions
-
+from .tools.sql_analyzer import sql_analyzer_agent
 
 @function_tool
 async def run_visual_planner(user_input: str) -> str:
@@ -13,7 +13,24 @@ async def run_visual_planner(user_input: str) -> str:
     Use this when no visualization plan exists in memory.
     """
     try : 
-        result = await Runner.run(visual_planner_agent, user_input)
+        required_context = AGENT_MEMORY.get_data_insights_context()
+        print(f"\n🔍 Required context: {required_context} \n")
+        
+        # Extract SQL query from context for analysis
+        if required_context and len(required_context) > 0:
+            latest_context = required_context[-1]  # Get the most recent context
+            if 'agent' in latest_context and isinstance(latest_context['agent'], dict):
+                    sql_query = latest_context['agent'].get('sql', '')
+                    sql_analyzer_result = await Runner.run(sql_analyzer_agent, f"Analyze this SQL query: {sql_query}")
+                    print(f"\n🔍 SQL analyzer result: {sql_analyzer_result} \n")
+                    formatted_user_input = f"User request: {user_input}\nContext: {required_context}\nSQL analyzer result: {sql_analyzer_result}"
+        else:
+            print(f"\nNo SQL query found in context, proceeding without SQL analysis\n")
+            print(f"\n Checking if the user's request has the SQL query\n")
+            sql_analyzer_result = await Runner.run(sql_analyzer_agent, f"Analyze this SQL query: {user_input}")
+            print(f"\n🔍 SQL analyzer result: {sql_analyzer_result} \n")
+            formatted_user_input = f"User request: {user_input}\nSQL analyzer result: {sql_analyzer_result}"
+        result = await Runner.run(visual_planner_agent, formatted_user_input)
         output = result.final_output
         AGENT_MEMORY.set_visualization_plan(output)
         AGENT_MEMORY.set_has_visualization_plan(True)
@@ -37,9 +54,6 @@ async def run_visual_planner(user_input: str) -> str:
         AGENT_MEMORY.set_json_visual_definition(output)
         AGENT_MEMORY.set_has_json_visual_definition(True)
         print(f"\nHas JSON definition: {AGENT_MEMORY.get_has_json_visual_definition()}\n")
-         # response = create_analysis(AGENT_MEMORY.get_json_visual_definition(), "test-analysis-1")
-         # print(f"\n✅ Analysis creation status: {response}\n")
-         # return response
         return output
     except Exception as e:
         error_msg = f"Sorry, I encountered an error while preparing the json definition: {str(e)}. This might be due to the visualisation plan or the json definition template."
@@ -90,7 +104,8 @@ async def quicksight_analysis(user_input: str) -> str:
 INSTRUCTIONS = """
 You are a Visual Coordinator Agent that manages the complete visualization workflow from planning to QuickSight analysis creation.
 
-TASK: Your task is to analyze the user's request and decide which agent to call.
+TASK: Your task is to analyze the user's request and decide which agent to call. 
+REMEMBER: For a new analysis, you need to create a visualization plan first.
 
 AVAILABLE TOOLS:
 - run_visual_planner
@@ -99,18 +114,23 @@ AVAILABLE TOOLS:
 TOOL USAGE:
 - When the user wants to create a visualization :
     - ALWAYS FIRST CALL run_visual_planner with the user's request
-    - AFTER CALLING run_visual_planner, ASK the user if they want to create a QuickSight analysis based on the visualization definition.
-    - IF the user wants to create a QuickSight analysis, THEN :
-        - CHECK if the user has provided the name of the analysis in the user's request.
-            - IF the user has provided the name of the analysis, THEN :
-                - CALL quicksight_analysis with the user's request including the name of the analysis.
-            - IF the user has not provided the name of the analysis, THEN :
-                - MAKE a meaningful name for the analysis.
-                - CALL quicksight_analysis with the user's request including the name of the analysis you made.
-    - IF the user does not want to create a QuickSight analysis, THEN DO NOT CALL quicksight_analysis.
+    - RETURN EXACTLY what run_visual_planner returns (the JSON definition)
+    - DO NOT ask questions or add commentary - just return the tool output
+- ONLY When the user prompts to create a QuickSight analysis :
+    - CHECK if the user has provided the name of the analysis in the user's request.
+                - IF the user has provided the name of the analysis, THEN :
+                    - CALL quicksight_analysis with the user's request including the name of the analysis.
+                - IF the user has not provided the name of the analysis, THEN :
+                    - MAKE a meaningful name for the analysis.
+                    - CALL quicksight_analysis with the user's request including the name of the analysis you made.      
+                    - RETURN EXACTLY what quicksight_analysis returns
+- IF the user does not want to create a QuickSight analysis, THEN DO NOT CALL quicksight_analysis.
 
-OUTPUT FORMAT:
-- ALWAYS ONLY return the exact output of the tool call. DO NOT add any other text or comments or formatting.
+MANDATORY OUTPUT FORMAT:
+- ALWAYS return EXACTLY the output from the tool call
+- DO NOT add any commentary, questions, or additional text
+- IF run_visual_planner is called: return the JSON definition
+- IF quicksight_analysis is called: return the analysis status
 
 """
 

@@ -3,15 +3,17 @@ import asyncio
 import sys
 import os
 from pathlib import Path
+import json
+import ast
 
 # Add the project root to Python path  
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from agents import Runner, SQLiteSession
-from src.agents.data_insights_agent import data_insights_agent
-from src.agents.data_visualizer_agent import data_visualizer_agent
+from src.agents.coordinator_agent import coordinator_agent
 import json
+import ast
 
 # Page configuration
 st.set_page_config(
@@ -28,8 +30,8 @@ if "agent_session" not in st.session_state:
     st.session_state.agent_session = SQLiteSession("streamlit_session")
 
 # Title and description
-st.title("📊 Data Insights Assistant")
-st.markdown("*Your AI assistant for digital fashion e-commerce data analysis*")
+st.title("📊 Data Analysis & Visualization Assistant")
+st.markdown("*Your AI assistant for digital fashion e-commerce data analysis and QuickSight visualization*")
 
 # Sidebar for options
 with st.sidebar:
@@ -50,14 +52,26 @@ with st.sidebar:
 # Display chat messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-        
-        #Display additional data if present
-        # if "sql" in message and message["sql"]:
-        #     st.code(message["sql"], language="sql")
-        
-        if "visualization" in message and message["visualization"]:
-            st.json(message["visualization"])
+        # Check if this message contains a JSON definition
+        if message.get("is_json_definition", False):
+            st.subheader("🎨 Dashboard Definition")
+            try:
+                # Parse and format the stored JSON
+                if isinstance(message["content"], str):
+                    try:
+                        json_obj = json.loads(message["content"])
+                    except json.JSONDecodeError:
+                        json_obj = ast.literal_eval(message["content"])
+                else:
+                    json_obj = message["content"]
+                
+                # Display formatted JSON with line numbers
+                st.code(json.dumps(json_obj, indent=2), language="json", line_numbers=True)
+            except Exception as e:
+                # Fallback to regular display
+                st.code(message["content"], language="json")
+        else:
+            st.markdown(message["content"])
 
 # Chat input
 if prompt := st.chat_input("Ask me about your e-commerce data..."):
@@ -68,15 +82,48 @@ if prompt := st.chat_input("Ask me about your e-commerce data..."):
     
     # Get response from agent
     with st.chat_message("assistant"):
-        with st.spinner("Analyzing your data..."):
+        with st.spinner("Processing your request..."):
             try:
-                # Run the data insights agent
+                # Route the request through the coordinator agent (uses handoffs)
                 response = asyncio.run(
-                    Runner.run(data_insights_agent, prompt, session=st.session_state.agent_session)
+                    Runner.run(coordinator_agent, prompt, session=st.session_state.agent_session)
                 )
                 
                 assistant_response = response.final_output
-                st.markdown(assistant_response)
+                
+                # Debug: Print first 200 chars of response
+                print(f"DEBUG - Response preview: {assistant_response[:200]}...")
+                
+                # Check if response contains a JSON definition
+                is_json_definition = False
+                try:
+                     # Clean the response and check if it's JSON
+                     cleaned_response = assistant_response.strip()
+                     
+                     # Try to parse as JSON string first
+                     if cleaned_response.startswith('{') and cleaned_response.endswith('}'):
+                         is_json_definition = True
+                         st.subheader("🎨 Dashboard Definition")
+                         
+                         # Parse and format the JSON properly
+                         try:
+                             # Try json.loads first (for proper JSON strings)
+                             json_obj = json.loads(cleaned_response)
+                         except json.JSONDecodeError:
+                             # Fall back to ast.literal_eval (for Python dict strings)
+                             json_obj = ast.literal_eval(cleaned_response)
+                         
+                         # Display formatted JSON in a full-width container
+                         st.code(json.dumps(json_obj, indent=2), language="json", line_numbers=True)
+                                 
+                except Exception as e:
+                    print(f"JSON parsing error: {e}")
+                    # If JSON parsing fails, display as regular text
+                    st.code(cleaned_response, language="text")
+                
+                # Only display as markdown if it's not a JSON definition
+                if not is_json_definition:
+                    st.markdown(assistant_response)
                 
                 # Store the response
                 message_data = {
@@ -84,9 +131,12 @@ if prompt := st.chat_input("Ask me about your e-commerce data..."):
                     "content": assistant_response
                 }
                 
-                # Check if response contains SQL (basic parsing)
+                # Mark if this message contains a JSON definition for proper display
+                if is_json_definition:
+                    message_data["is_json_definition"] = True
+                
+                # Optional: basic SQL extraction if present
                 if "```sql" in assistant_response.lower():
-                    # Extract SQL from markdown code block
                     sql_start = assistant_response.lower().find("```sql") + 6
                     sql_end = assistant_response.find("```", sql_start)
                     if sql_end != -1:
@@ -103,39 +153,8 @@ if prompt := st.chat_input("Ask me about your e-commerce data..."):
                     "content": error_msg
                 })
 
-# Visualization section
-if len(st.session_state.messages) > 0:
-    last_message = st.session_state.messages[-1]
-    if (last_message["role"] == "assistant" and 
-        "visualization" in last_message.get("content", "").lower()):
-        
-        st.markdown("---")
-        st.subheader("📊 Create Visualization")
-        
-        if st.button("Generate Dashboard Definition"):
-            with st.spinner("Creating dashboard definition..."):
-                try:
-                    # Get the last data query and response
-                    context = f"User Question: {st.session_state.messages[-2]['content']}\n"
-                    context += f"Data Response: {last_message['content']}"
-                    
-                    # Run dashboard generator
-                    viz_response = asyncio.run(
-                        Runner.run(data_visualizer_agent, context)
-                    )
-                    
-                    st.subheader("🎨 Dashboard Definition")
-                    st.code(viz_response.final_output, language="json")
-                    
-                    # Try to parse and display as JSON
-                    try:
-                        json_data = json.loads(viz_response.final_output)
-                        st.json(json_data)
-                    except:
-                        st.info("Dashboard definition generated (not valid JSON format)")
-                        
-                except Exception as e:
-                    st.error(f"Error generating visualization: {str(e)}")
+# The coordinator_agent will manage visualization and QuickSight handoffs within the conversation.
 
 # Footer
 st.markdown("---")
+

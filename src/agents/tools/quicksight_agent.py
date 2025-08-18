@@ -1,4 +1,3 @@
-from pickle import TRUE
 from agents import Agent, ModelSettings, function_tool
 from ...memory.agent_memory import AGENT_MEMORY
 
