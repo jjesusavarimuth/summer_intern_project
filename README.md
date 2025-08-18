@@ -242,7 +242,7 @@ Run the comprehensive QuickSight test suite to validate all API functions:
 
 ```bash
 # Run complete QuickSight API test suite
-python test_quicksight.py
+python src/test/test_quicksight.py
 ```
 
 **Test Coverage:**
