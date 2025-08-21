@@ -5,7 +5,7 @@ from typing import Optional, Dict
 
 client = boto3.client('bedrock-agent-runtime')
 
-INSTRUCTIONS = """
+INSTRUCTIONS_ECOMMERCE = """
     You are a database query planner. Analyze the user's question and create a query plan.
     
     DATABASE SCHEMA: 
@@ -24,9 +24,34 @@ INSTRUCTIONS = """
     4. DO NOT try to generate SQL query in your response.
 """
 
-query_planner_agent = Agent(
-    name="QueryPlannerAgent",
-    instructions= INSTRUCTIONS,
+query_planner_agent_ecommerce = Agent(
+    name="QueryPlannerAgent_Ecommerce",
+    instructions= INSTRUCTIONS_ECOMMERCE,
+    model="gpt-4o-mini",
+)
+
+INSTRUCTIONS_BU_SCORECARD = """
+    You are a database query planner. Analyze the user's question and create a query plan.
+    
+    DATABASE SCHEMA: 
+    - public
+        - metric_report_mst_month (YYYY-MM-DD) DO IT EXACTLY IN THIS FORMAT
+        - entry_type (actuals, targets)
+        - business_unit (SITE & CUSTOMER MARKETING, CARE & SERVICES, COMMERCE, CTO, DRI, GDII, MARKETING, PARTNERS, USI, WPS)
+        - metric_name (DEPENDS ON BUSINESS UNIT)
+        - region_name
+        - higher_is_better (true, false)
+        - metric_value (FLOAT)
+
+    Your task:
+    1. Identify which tables, columns and the relationships between tables that need to be joined to answer the question
+    3. summarize the plan into a samll paragraph and output ONLY the summary.
+    4. DO NOT try to generate SQL query in your response.
+"""
+
+query_planner_agent_bu_scorecard = Agent(
+    name="QueryPlannerAgent_BU_Scorecard",
+    instructions= INSTRUCTIONS_BU_SCORECARD,
     model="gpt-4o-mini",
 )
 
@@ -35,7 +60,7 @@ query_planner_agent = Agent(
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def query_KB(event):
+def query_KB_ecommerce(event):
     try:
         # question  = event['question']
         question = None
@@ -55,6 +80,46 @@ def query_KB(event):
             retrieveAndGenerateConfiguration={
                 'knowledgeBaseConfiguration': {
                     'knowledgeBaseId': 'QCQ10YU9FE',
+                    'modelArn': 'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0'
+                },
+                'type': 'KNOWLEDGE_BASE'
+            }
+        )
+        answer = response['output']['text']
+        sql_query = None
+        for citation in response.get('citations', []):
+            for ref in citation.get('retrievedReferences', []):
+                sql_loc = ref.get('location', {}).get('sqlLocation')
+                if sql_loc and 'query' in sql_loc:
+                    sql_query = sql_loc['query']
+        return {
+            "answer": answer,
+            "sql": sql_query
+        }
+    except Exception as e:
+        logger.error(f"Error in query_KB: {str(e)}")
+        raise
+
+def query_KB_bu_scorecard(event):
+    try:
+        # question  = event['question']
+        question = None
+        try:
+            props = event['requestBody']['content']['application/json']['properties']
+            for prop in props:
+                if prop.get('name') == 'question':
+                    question = prop.get('value')
+                    break
+        except Exception as ex:
+            logger.error(f"Failed to extract user question from requestBody: {ex}")   
+        if not question:
+            return {"error": "No question provided in the request."}    
+        
+        response = client.retrieve_and_generate(
+            input={'text': question},
+            retrieveAndGenerateConfiguration={
+                'knowledgeBaseConfiguration': {
+                    'knowledgeBaseId': '5DIN1CDKCY',
                     'modelArn': 'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0'
                 },
                 'type': 'KNOWLEDGE_BASE'

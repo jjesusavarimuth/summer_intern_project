@@ -10,9 +10,9 @@ class Manager:
         # Intialize session to store conversation history
         session = SQLiteSession("session1")
 
-        print("Hi I'm a data analysis and visualization assistant for a digital fashion e-commerce store. I can help you with data insights, visualizations, and QuickSight management. How can I help you today?")
+        print("Hi I'm a data analysis and visualization assistant for a digital fashion e-commerce store and BU Scorecard metrics. I can help you with data insights, visualizations, and QuickSight management. How can I help you today?")
         # Add initial message to the session
-        await session.add_items([{"role": "assistant", "content": "Hi I'm a data analysis and visualization assistant for a digital fashion e-commerce store. I can help you with data insights, visualizations, and QuickSight management. How can I help you today?"}])
+        await session.add_items([{"role": "assistant", "content": "Hi I'm a data analysis and visualization assistant for a digital fashion e-commerce store and BU Scorecard metrics. I can help you with data insights, visualizations, and QuickSight management. How can I help you today?"}])
 
         while True:
             try:

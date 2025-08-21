@@ -58,7 +58,7 @@ if "agent_session" not in st.session_state:
 # ========================================
 
 st.title("📊 Data Analysis & Visualization Assistant")
-st.markdown("*Your AI assistant for digital fashion e-commerce data analysis and QuickSight visualization*")
+st.markdown("*Your AI assistant for data analysis and QuickSight visualization*")
 
 # ========================================
 # SIDEBAR CONFIGURATION
@@ -77,10 +77,17 @@ with st.sidebar:
     st.markdown("---")
     
     # Provide example queries to help users get started
-    st.markdown("### 💡 Sample Questions")
+    st.markdown("### 💡 Sample E-commerce Questions")
     st.markdown("- What are the top performing products in terms of revenue?")
     st.markdown("- Compare revenue by product category?")
     st.markdown("- Compare revenue by product category?")
+    st.markdown("---")
+    st.markdown("### 💡 Sample BU Scorecard Questions")
+    st.markdown("- Compare targets and actuals for OpEx Costs from Care & Services in March 2024.")
+    st.markdown("- Compare actuals for OpEx Costs from Care & Services YOY comparing March 2024 and March 2025.")
+    st.markdown("- What are the top performing metrics for the USI business unit?")
+    
+    # 
 
 # ========================================
 # CHAT MESSAGE DISPLAY
@@ -118,7 +125,7 @@ for message in st.session_state.messages:
 # ========================================
 
 # Main chat input handler
-if prompt := st.chat_input("Ask me about your e-commerce data..."):
+if prompt := st.chat_input("Ask me about your data..."):
     # Add user message to conversation history
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
