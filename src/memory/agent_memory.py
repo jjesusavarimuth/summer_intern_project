@@ -21,7 +21,7 @@ class AgentMemory:
     # session context - list of user/agent interactions
     data_insights_context: Optional[List[Dict[str, Any]]] = None
     context: Optional[List[Dict[str, Any]]] = None
-    has_sql_query: Optional[bool] = False
+    has_direct_sql_query: Optional[bool] = False
     
     # Data Visualizer Agent outputs  
     visualization_plan: Optional[str] = None
@@ -46,7 +46,11 @@ class AgentMemory:
         if self.data_insights_context is None:
             self.data_insights_context = []
         self.data_insights_context.append({"user": user_message, "agent": agent_response})
-
+    
+    def set_has_direct_sql_query(self, has_direct_sql_query: bool):
+        """Set has_direct_sql_query"""
+        self.has_direct_sql_query = has_direct_sql_query
+        
     def set_visualization_plan(self, visualization_plan: str):
         """Set visualization plan"""
         self.visualization_plan = visualization_plan
@@ -100,6 +104,10 @@ class AgentMemory:
                 formatted_context.append(f"\nAgent: {interaction['agent']}\n")
         
         return "\n".join(formatted_context)
+        
+    def get_has_direct_sql_query(self) -> bool:
+        """Get has_direct_sql_query"""
+        return self.has_direct_sql_query
 
     def get_quicksight_analysis_name(self) -> str:
         """Get quicksight_analysis_name"""

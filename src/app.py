@@ -79,8 +79,7 @@ with st.sidebar:
     # Provide example queries to help users get started
     st.markdown("### 💡 Sample Questions")
     st.markdown("- What are the top performing products in terms of revenue?")
-    st.markdown("- Compare revenue by product category?")
-    st.markdown("- Compare revenue by product category?")
+    st.markdown("- Compare the different product categories in terms of sales it made?")
 
 # ========================================
 # CHAT MESSAGE DISPLAY
