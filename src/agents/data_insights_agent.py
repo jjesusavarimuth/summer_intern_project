@@ -114,8 +114,6 @@ INSTRUCTIONS = """
             - Once clear, refine the question and forward the user's question to the retrieve_query_results tool.
         - Query Planning:
         - When deciding which tool to use (plan_and_retrieve_ecommerce or plan_and_retrieve_bu_scorecard), determine which tool to use based on the user's question.
-            - If the question is about sales, sales items, customers, products, campaigns, channels and stocks, use the plan_and_retrieve_ecommerce tool.
-            - If the question is about BU Scorecard metrics, use the plan_and_retrieve_bu_scorecard tool.
             - ALWAYS decide which tool to use before executing the tool to avoid wrong data.
             - ONLY If the user's question is about BU Scorecard metrics, forward it to the plan_and_retrieve_bu_scorecard tool. YOU MAY compare targets and actuals for BU Scorecard metrics.
             - ONLY If the user's question is about sales, sales items, customers, products, campaigns, channels and stocks, forward it to the plan_and_retrieve_ecommerce tool.

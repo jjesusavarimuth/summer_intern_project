@@ -35,10 +35,10 @@ INSTRUCTIONS_BU_SCORECARD = """
     
     DATABASE SCHEMA: 
     - public
-        - metric_report_mst_month (YYYY-MM-DD) DO IT EXACTLY IN THIS FORMAT
-        - entry_type (actuals, targets)
-        - business_unit (SITE & CUSTOMER MARKETING, CARE & SERVICES, COMMERCE, CTO, DRI, GDII, MARKETING, PARTNERS, USI, WPS)
-        - metric_name (DEPENDS ON BUSINESS UNIT)
+        - metric_report_mst_month (YYYY-MM-DD) *DO IT EXACTLY IN THIS FORMAT*
+        - entry_type (actuals, targets) *DO IT EXACTLY IN THIS FORMAT*
+        - business_unit (SITE & CUSTOMER MARKETING, CARE & SERVICES, COMMERCE, CTO, DRI, GDII, MARKETING, PARTNERS, USI, WPS) *DO IT EXACTLY IN THIS FORMAT*
+        - metric_name (DEPENDS ON BUSINESS UNIT) *DO IT EXACTLY IN THIS FORMAT*
         - region_name
         - higher_is_better (true, false)
         - metric_value (FLOAT)

@@ -80,7 +80,6 @@ with st.sidebar:
     st.markdown("### 💡 Sample E-commerce Questions")
     st.markdown("- What are the top performing products in terms of revenue?")
     st.markdown("- Compare revenue by product category?")
-    st.markdown("- Compare revenue by product category?")
     st.markdown("---")
     st.markdown("### 💡 Sample BU Scorecard Questions")
     st.markdown("- Compare targets and actuals for OpEx Costs from Care & Services in March 2024.")
